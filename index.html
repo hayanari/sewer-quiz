@@ -887,10 +887,31 @@ function showAdmin() {
 
   content.innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner"></span><br><br>データを読み込み中...</p>';
 
-  fetch(GAS_URL)
-    .then(function(r){ return r.json(); })
-    .then(function(data){ renderAdmin(data); })
-    .catch(function(){ content.innerHTML = '<p style="text-align:center;color:#dc2626;padding:16px;">データの取得に失敗しました。</p>'; });
+  // JSONP方式でデータ取得（CORS回避）
+  var cbName = '_gasCallback_' + Date.now();
+  window[cbName] = function(data) {
+    delete window[cbName];
+    var oldScript = document.getElementById('gasScript');
+    if (oldScript) oldScript.remove();
+    renderAdmin(data);
+  };
+  var oldScript = document.getElementById('gasScript');
+  if (oldScript) oldScript.remove();
+  var script = document.createElement('script');
+  script.id = 'gasScript';
+  script.src = GAS_URL + '?callback=' + cbName;
+  script.onerror = function() {
+    delete window[cbName];
+    content.innerHTML = '<p style="text-align:center;color:#dc2626;padding:16px;">データの取得に失敗しました。<br>しばらく待ってから再度お試しください。</p>';
+  };
+  document.body.appendChild(script);
+  // 10秒タイムアウト
+  setTimeout(function() {
+    if (window[cbName]) {
+      delete window[cbName];
+      content.innerHTML = '<p style="text-align:center;color:#dc2626;padding:16px;">タイムアウトしました。<br>しばらく待ってから再度お試しください。</p>';
+    }
+  }, 10000);
 }
 
 function renderAdmin(data) {
