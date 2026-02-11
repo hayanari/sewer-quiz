@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>下水道管路管理マニュアル 2023 - 試験問題アプリ</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; padding: 16px 20px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.header h1 { font-size: 16px; font-weight: 700; }
+.header p { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+/* Container */
+.container { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+/* Home Screen */
+.home-card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.home-card h2 { font-size: 18px; margin-bottom: 16px; color: #1e3a5f; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.stat-box { background: #f0f4f8; border-radius: 12px; padding: 12px; text-align: center; }
+.stat-box .num { font-size: 24px; font-weight: 700; color: #2563eb; }
+.stat-box .label { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* Mode Selection */
+.mode-btn { display: block; width: 100%; padding: 16px 20px; margin-bottom: 10px; border: 2px solid #e2e8f0; border-radius: 12px; background: white; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 15px; }
+.mode-btn:hover, .mode-btn:active { border-color: #2563eb; background: #eff6ff; }
+.mode-btn .mode-title { font-weight: 700; color: #1e3a5f; }
+.mode-btn .mode-desc { font-size: 12px; color: #64748b; margin-top: 4px; }
+.mode-btn .mode-icon { float: right; font-size: 24px; }
+
+/* Chapter Selection */
+.chapter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chapter-btn { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; background: white; cursor: pointer; text-align: center; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.chapter-btn:hover, .chapter-btn:active { border-color: #2563eb; background: #eff6ff; }
+.chapter-btn.selected { border-color: #2563eb; background: #dbeafe; color: #1e3a5f; }
+
+/* Quiz Screen */
+.quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.progress-text { font-size: 14px; font-weight: 600; color: #1e3a5f; }
+.progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; margin-bottom: 16px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #3b82f6); border-radius: 3px; transition: width 0.3s ease; }
+
+.question-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 16px; }
+.q-type { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+.q-type.mc { background: #dbeafe; color: #1e40af; }
+.q-type.tf { background: #dcfce7; color: #166534; }
+.q-chapter { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; margin-left: 6px; }
+.q-text { font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 16px; color: #1e293b; }
+
+.option-btn { display: block; width: 100%; padding: 14px 16px; margin-bottom: 8px; border: 2px solid #e2e8f0; border-radius: 12px; background: white; text-align: left; cursor: pointer; font-size: 15px; line-height: 1.5; transition: all 0.15s; }
+.option-btn:hover { border-color: #93c5fd; background: #f8fafc; }
+.option-btn:active { transform: scale(0.98); }
+.option-btn.selected { border-color: #2563eb; background: #eff6ff; }
+.option-btn.correct { border-color: #16a34a; background: #dcfce7; color: #166534; }
+.option-btn.wrong { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+.option-btn.show-correct { border-color: #16a34a; background: #dcfce7; }
+.option-btn .opt-label { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background: #f1f5f9; color: #475569; font-weight: 700; font-size: 13px; margin-right: 10px; flex-shrink: 0; }
+.option-btn.correct .opt-label { background: #16a34a; color: white; }
+.option-btn.wrong .opt-label { background: #dc2626; color: white; }
+
+/* Explanation */
+.explanation { margin-top: 16px; padding: 16px; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; font-size: 14px; line-height: 1.6; display: none; }
+.explanation.show { display: block; animation: fadeIn 0.3s ease; }
+.explanation .exp-title { font-weight: 700; color: #92400e; margin-bottom: 4px; }
+
+.next-btn { display: block; width: 100%; padding: 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: none; }
+.next-btn:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+.next-btn:active { transform: scale(0.98); }
+.next-btn.show { display: block; animation: fadeIn 0.3s ease; }
+
+/* Result Screen */
+.result-card { background: white; border-radius: 16px; padding: 28px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.result-score { font-size: 64px; font-weight: 800; color: #2563eb; }
+.result-total { font-size: 20px; color: #64748b; }
+.result-msg { font-size: 18px; font-weight: 700; margin: 16px 0; }
+.result-detail { font-size: 14px; color: #475569; margin-bottom: 20px; }
+.result-bar { width: 80%; margin: 16px auto; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
+.result-bar-fill { height: 100%; border-radius: 5px; transition: width 1s ease; }
+.result-chapters { text-align: left; margin: 20px 0; }
+.result-ch { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+
+.btn-group { display: flex; gap: 10px; margin-top: 20px; }
+.btn-group button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.btn-primary { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; }
+.btn-secondary { background: #f1f5f9; color: #475569; }
+
+/* Review Screen */
+.review-item { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.review-item.incorrect { border-left: 4px solid #dc2626; }
+.review-item.correct-review { border-left: 4px solid #16a34a; }
+.review-q { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.review-a { font-size: 13px; color: #475569; }
+.review-a .your-ans { color: #dc2626; }
+.review-a .correct-ans { color: #16a34a; font-weight: 600; }
+
+/* Back button */
+.back-btn { display: inline-flex; align-items: center; gap: 4px; padding: 8px 16px; border: none; background: rgba(255,255,255,0.15); color: white; border-radius: 8px; cursor: pointer; font-size: 13px; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
+.header { position: sticky; }
+.header-inner { position: relative; }
+
+/* Number selector */
+.num-selector { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0; }
+.num-selector button { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #e2e8f0; background: white; font-size: 18px; cursor: pointer; font-weight: 700; color: #475569; }
+.num-selector button:hover { border-color: #2563eb; }
+.num-selector .num-display { font-size: 28px; font-weight: 800; color: #1e3a5f; min-width: 60px; text-align: center; }
+
+.start-btn { display: block; width: 100%; padding: 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 16px; }
+.start-btn:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+
+.hidden { display: none !important; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Timer */
+.timer { font-size: 13px; color: #64748b; font-weight: 600; }
+
+/* Footer */
+.footer { text-align: center; padding: 20px 16px 32px; font-size: 11px; color: #94a3b8; }
+.footer a { color: #64748b; text-decoration: none; }
+
+/* Print styles */
+@media print { .header, .footer, .next-btn, .btn-group { display: none !important; } }
+
+/* Reset button */
+.reset-btn { display: block; width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #fecaca; border-radius: 12px; background: #fff5f5; color: #dc2626; font-size: 13px; cursor: pointer; text-align: center; }
+.reset-btn:hover { background: #fef2f2; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <button class="back-btn hidden" id="backBtn" onclick="goBack()">← 戻る</button>
+    <h1>下水道管路管理マニュアル 2023</h1>
+    <p>試験問題トレーニング</p>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div class="container" id="homeScreen">
+  <div class="home-card">
+    <h2>学習状況</h2>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="num" id="totalAttempts">0</div>
+        <div class="label">挑戦回数</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="avgScore">-</div>
+        <div class="label">平均正答率</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="totalQuestions">0</div>
+        <div class="label">総問題数</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-card">
+    <h2>出題モード</h2>
+    <button class="mode-btn" onclick="selectMode('all')">
+      <span class="mode-icon">🎯</span>
+      <div class="mode-title">全章ランダム</div>
+      <div class="mode-desc">全章からランダムに出題</div>
+    </button>
+    <button class="mode-btn" onclick="selectMode('chapter')">
+      <span class="mode-icon">📖</span>
+      <div class="mode-title">章別出題</div>
+      <div class="mode-desc">特定の章を選んで集中学習</div>
+    </button>
+    <button class="mode-btn" onclick="selectMode('weak')">
+      <span class="mode-icon">💪</span>
+      <div class="mode-title">苦手克服</div>
+      <div class="mode-desc">過去に間違えた問題を優先出題</div>
+    </button>
+  </div>
+  <div class="home-card">
+    <h2>データ管理</h2>
+    <button class="reset-btn" onclick="resetData()">学習履歴をリセット</button>
+  </div>
+  <div class="footer">
+    <p>下水道管路管理マニュアル 2023 準拠</p>
+    <p>全150問（4択: 117問 / ○×: 33問）・全12章対応</p>
+    <p style="margin-top:4px;">ver 1.0 - このファイル1つで動作します</p>
+  </div>
+</div>
+
+<!-- CHAPTER SELECT SCREEN -->
+<div class="container hidden" id="chapterScreen">
+  <div class="home-card">
+    <h2>章を選択</h2>
+    <div class="chapter-grid" id="chapterGrid"></div>
+    <div style="margin-top:16px;">
+      <h2 style="font-size:15px;margin-bottom:8px;">出題数</h2>
+      <div class="num-selector">
+        <button onclick="changeNum(-5)">−</button>
+        <div class="num-display" id="numDisplay">10</div>
+        <button onclick="changeNum(5)">＋</button>
+      </div>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">スタート</button>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div class="container hidden" id="quizScreen">
+  <div class="quiz-header">
+    <span class="progress-text" id="progressText">1 / 10</span>
+    <span class="timer" id="timerText">00:00</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="question-card" id="questionCard"></div>
+  <div class="explanation" id="explanation"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">次の問題</button>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="container hidden" id="resultScreen"></div>
+
+<script>
+// ===== QUESTION DATA =====
+const questions = [
+// --- 第1章 総論 ---
+{ch:1,type:"mc",q:"下水道の処理人口普及率は令和3年度末で約何%か？",opts:["約60.6%","約70.6%","約80.6%","約90.6%"],ans:2,exp:"令和3年度末時点の下水道処理人口普及率は約80.6%です。"},
+{ch:1,type:"mc",q:"令和2年度末時点の管路延長は約何万kmか？",opts:["約29万km","約39万km","約49万km","約59万km"],ans:2,exp:"令和2年度末時点で管路延長は約49万kmです。"},
+{ch:1,type:"mc",q:"管路の標準耐用年数は何年か？",opts:["30年","40年","50年","60年"],ans:2,exp:"管きょ（全種類）の標準耐用年数は50年です。"},
+{ch:1,type:"tf",q:"巡視とは、マンホール蓋を開けて管路施設の状態を確認する作業である。",ans:false,exp:"巡視はマンホール蓋を開けずに地表面から観察する作業です。蓋を開けるのは「点検」です。"},
+{ch:1,type:"mc",q:"下水道法に規定される下水道の種類として正しくないものはどれか？",opts:["公共下水道","流域下水道","都市下水路","特定下水道"],ans:3,exp:"下水道法に規定される3種類は「公共下水道」「流域下水道」「都市下水路」です。「特定下水道」は存在しません。"},
+{ch:1,type:"mc",q:"車道に設置されたマンホール蓋の標準耐用年数は何年か？",opts:["10年","15年","20年","30年"],ans:1,exp:"車道に設置されたマンホール蓋の標準耐用年数は15年です。なお、車道以外は30年です。"},
+{ch:1,type:"tf",q:"修繕とは、施設の供用期間内において機能を回復する行為であり、新たな耐用年数の確保を伴うものではない。",ans:true,exp:"修繕は供用期間内の機能回復であり、耐用年数の更新は伴いません。新たな耐用年数を確保するのは「改築」です。"},
+{ch:1,type:"mc",q:"合流式下水道と分流式下水道の説明として正しいものはどれか？",opts:["合流式は管路が2系統必要である","分流式は建設費が安い","合流式は降雨時に未処理水が越流する問題がある","分流式は誤接合の問題がない"],ans:2,exp:"合流式は1系統で済むため建設費は安いですが、降雨時に未処理下水が公共水域に越流する問題があります。分流式は誤接合が大きな問題です。"},
+{ch:1,type:"mc",q:"「改築」の定義として正しいものはどれか？",opts:["供用期間内で機能を回復すること","新たな供用年数を確保すること","マンホール蓋を交換すること","清掃により堆積物を除去すること"],ans:1,exp:"改築とは新たな供用年数を確保する行為で、「更新」と「長寿命化対策」を含みます。"},
+{ch:1,type:"tf",q:"都市下水路の要件として、管の内径又は内のり幅が500mm以上であることが必要である。",ans:true,exp:"都市下水路は管の内径又は内のり幅500mm以上、排水面積10ha以上が要件です。"},
+{ch:1,type:"mc",q:"標準耐用年数50年を超過した管路は令和2年度末時点で総延長の何%か？",opts:["約2%","約5%","約10%","約17%"],ans:1,exp:"50年超過管路は約2.5万km（総延長の約5%）。10年後には約17%、20年後には約39%に増加見込みです。"},
+{ch:1,type:"mc",q:"「しゅんせつ」と「清掃」の違いとして正しいものはどれか？",opts:["しゅんせつは蓋を開ける作業である","清掃は底版のある施設、しゅんせつは底版のない施設が対象","しゅんせつは年1回必要である","両者に違いはない"],ans:1,exp:"清掃は底版（コンクリート等）のある施設の堆積物除去、しゅんせつは底版のない施設（自然底の水路等）の堆積物除去です。"},
+
+// --- 第2章 計画的維持管理 ---
+{ch:2,type:"mc",q:"下水道管路施設に起因する道路陥没は現在年間約何件発生しているか？",opts:["約1,000件","約1,700件","約2,700件","約4,000件"],ans:2,exp:"以前は年間約4,000件でしたが、現在は約2,700件まで減少しています。"},
+{ch:2,type:"mc",q:"平成27年の下水道法改正で規定された腐食点検の頻度はどれか？",opts:["1年に1回以上","3年に1回以上","5年に1回以上","10年に1回以上"],ans:2,exp:"平成27年の下水道法改正により、腐食するおそれが大きい箇所は5年に1回以上の点検が義務化されました。"},
+{ch:2,type:"tf",q:"管路施設の維持管理は、予防保全を原則とする。",ans:true,exp:"管路施設は予防保全（PM: Preventive Maintenance）を原則とし、状態監視保全（CBM）が標準的な手法です。"},
+{ch:2,type:"mc",q:"ストックマネジメントの計画の見直し・評価サイクルの目安は何年か？",opts:["1〜3年","5〜7年","10〜15年","20年"],ans:1,exp:"ストックマネジメントの評価・見直しサイクルは5〜7年が目安です。"},
+{ch:2,type:"mc",q:"リスクの定義として正しいものはどれか？",opts:["被害規模＋発生確率","被害規模×発生確率","発生確率÷被害規模","被害規模−発生確率"],ans:1,exp:"リスク＝被害規模（影響度）×発生確率で評価します。"},
+{ch:2,type:"mc",q:"下水道管路管理技士の「総合技士」に必要な実務経験年数は？",opts:["3年以上","5年以上","7年以上","10年以上"],ans:2,exp:"総合技士は7年以上、主任技士は5年以上、専門技士は3年以上の実務経験が必要です。"},
+{ch:2,type:"tf",q:"事後保全（故障してから修理する方式）は、管路施設管理の原則的な手法である。",ans:false,exp:"管路施設は予防保全が原則です。事後保全は原則的な手法ではありません。"},
+{ch:2,type:"mc",q:"下水道管路管理業登録制度が創設されたのは何年か？",opts:["平成10年","平成15年","平成20年","平成27年"],ans:1,exp:"下水道管路管理業登録制度は平成15年（2003年）に創設されました。"},
+
+// --- 第3章 管路施設の巡視 ---
+{ch:3,type:"mc",q:"巡視の推奨頻度はどれか？",opts:["月1回以上","年1回以上全路線","3年に1回以上","5年に1回以上"],ans:1,exp:"全路線を少なくとも年1回以上巡視することが推奨されています。"},
+{ch:3,type:"tf",q:"巡視ではマンホール蓋を開けて内部を確認する。",ans:false,exp:"巡視はマンホール蓋を開けずに地表面やマンホール蓋の状態を観察する作業です。"},
+{ch:3,type:"mc",q:"巡視における地表面の確認項目として正しくないものはどれか？",opts:["ひび割れ・陥没","いっ水（溢水）","周辺状況","管内堆積物"],ans:3,exp:"管内堆積物は巡視では確認できません。巡視は地表面・蓋の外観観察です。管内の確認は点検・調査で行います。"},
+{ch:3,type:"mc",q:"巡視結果の判定区分は何段階か？",opts:["2段階","3段階","4段階","5段階"],ans:1,exp:"巡視結果は「要改築」「要調査」「異状なし」の3段階で判定します。"},
+
+// --- 第4章 管路施設の点検 ---
+{ch:4,type:"mc",q:"腐食するおそれが大きい箇所の点検頻度として法令で規定されているのは？",opts:["1年に1回以上","3年に1回以上","5年に1回以上","10年に1回以上"],ans:2,exp:"下水道法の維持修繕基準により、腐食するおそれが大きい箇所は5年に1回以上の点検が義務です。"},
+{ch:4,type:"mc",q:"コンクリート腐食のメカニズムで、硫化水素を硫酸に変換する微生物は？",opts:["硫酸塩還元細菌","硫黄酸化細菌","大腸菌","メタン生成菌"],ans:1,exp:"硫黄酸化細菌がコンクリート表面の結露水中で硫化水素(H2S)を硫酸(H2SO4)に酸化します。"},
+{ch:4,type:"mc",q:"腐食環境の分類で「I種」の硫化水素濃度の目安はどれか？",opts:["平均10ppm未満","平均10〜50ppm","平均50ppm以上","平均100ppm以上"],ans:2,exp:"I種（過酷）は平均50ppm以上、II種（中程度）は10〜50ppm、III種（軽微）は10ppm未満です。"},
+{ch:4,type:"tf",q:"点検とは、マンホール蓋を開けて目視やカメラ等で施設の状態を確認する作業である。",ans:true,exp:"点検はマンホール蓋を開けて、目視・鏡・ライト・カメラ等で施設の異常を早期発見する作業です。"},
+{ch:4,type:"mc",q:"最重要施設の点検頻度の目安はどれか？",opts:["1年に1回","3年に1回","5年に1回","10年に1回"],ans:2,exp:"最重要施設は5年に1回、重要施設は7〜8年に1回、一般施設は15年に1回が目安です。"},
+{ch:4,type:"mc",q:"管口カメラ点検で管内を確認できる距離の目安は？",opts:["約5m","約15m","約30m","約50m"],ans:1,exp:"管口カメラ点検では、管口から約15m程度まで管内を確認できます。"},
+{ch:4,type:"mc",q:"硫化水素が発生しやすい箇所として正しくないものはどれか？",opts:["圧送管吐出し先","伏越し下流部","急勾配区間","ビルピット接続箇所"],ans:2,exp:"急勾配区間は流速が速く嫌気状態になりにくいため、H2S発生リスクは比較的低いです。圧送管吐出し先、伏越し下流部、ビルピット接続箇所は発生しやすい箇所です。"},
+{ch:4,type:"tf",q:"点検記録には、点検年月日、点検者の氏名、点検結果を記録し、次回点検まで保存する義務がある。",ans:true,exp:"法令により、点検年月日、点検を実施した者の氏名、点検結果を記録し、次回の点検まで保存することが義務付けられています。"},
+
+// --- 第5章 管路施設の調査 ---
+{ch:5,type:"mc",q:"テレビカメラ調査で使用される自走式カメラが適用可能な最小管径の目安は？",opts:["φ100mm","φ150mm","φ200mm","φ300mm"],ans:2,exp:"自走式テレビカメラは一般的にφ200mm以上の管きょに適用されます。"},
+{ch:5,type:"mc",q:"管きょの変状（異常）を表す「クラック」と「破損」の違いとして正しいものは？",opts:["クラックは管全周の破壊、破損は一部のひび","クラックはひび割れ、破損は管体の欠損や崩壊","両者は同義である","クラックは外面、破損は内面の異常"],ans:1,exp:"クラックはひび割れ（管体に生じた亀裂）、破損は管体の欠損・崩壊などより深刻な状態です。"},
+{ch:5,type:"tf",q:"管きょ調査において、安全衛生を考慮し、より大きな口径への本管テレビカメラ調査の適用が推奨されている。",ans:true,exp:"機器性能の向上に伴い、安全衛生も考慮して、より大きな口径への本管テレビカメラ調査の適用を推奨しています。"},
+{ch:5,type:"mc",q:"不明水の分類として正しいものはどれか？",opts:["地下水浸入水と雨水浸入水の2種類","常時浸入地下水と雨天時浸入水の2種類","表流水と地下水の2種類","河川水と湧水の2種類"],ans:1,exp:"不明水は「常時浸入地下水」と「雨天時浸入水」の2種類に大別されます。"},
+
+// --- 第6章 管路施設の清掃 ---
+{ch:6,type:"mc",q:"高圧洗浄車の標準的な洗浄圧力の範囲はどれか？",opts:["1〜5MPa","5〜15MPa","15〜25MPa","25〜35MPa"],ans:2,exp:"高圧洗浄車は一般的に15〜25MPa程度の水圧で管内の堆積物を洗浄します。ただし管種・管径に応じて調整が必要です。"},
+{ch:6,type:"tf",q:"管きょの清掃は、堆積物による流下能力の低下を防ぐために実施する。",ans:true,exp:"清掃の目的は、堆積物による管きょの流下能力低下を防止し、所定の流下機能を維持することです。"},
+{ch:6,type:"mc",q:"清掃作業の方法として正しくないものはどれか？",opts:["高圧洗浄","バケット清掃","ロッド通し","テレビカメラ調査"],ans:3,exp:"テレビカメラ調査は清掃ではなく調査手法です。高圧洗浄、バケット清掃、ロッド通しは清掃方法です。"},
+
+// --- 第7章 管路施設の修繕・改築 ---
+{ch:7,type:"mc",q:"更生工法の分類として正しくないものはどれか？",opts:["反転工法","形成工法","製管工法","溶接工法"],ans:3,exp:"更生工法は「反転工法」「形成工法」「製管工法」「さや管工法」に分類されます。溶接工法は含まれません。"},
+{ch:7,type:"mc",q:"更生工法において「自立管」と「複合管」の違いとして正しいものは？",opts:["自立管は既設管と一体化、複合管は単独で機能","自立管は単独で外圧に抵抗、複合管は既設管と一体で機能","両者に構造上の違いはない","自立管は小口径用、複合管は大口径用"],ans:1,exp:"自立管は更生管単独で必要な強度を確保し外圧に抵抗します。複合管は既設管と更生管が一体となって機能します。"},
+{ch:7,type:"tf",q:"止水工法は、管きょの継手部や破損部からの浸入水を防止する修繕工法である。",ans:true,exp:"止水工法は継手部のずれや破損部からの地下水浸入を防止するための修繕工法です。"},
+
+// --- 第8章 廃棄物処理 ---
+{ch:8,type:"mc",q:"産業廃棄物管理票（マニフェスト）制度の目的として正しいものは？",opts:["廃棄物の発生量を記録すること","排出事業者が最終処分まで適正処理を確認すること","廃棄物の種類を分類すること","処分場の容量を管理すること"],ans:1,exp:"マニフェスト制度は、排出事業者が産業廃棄物の処理を委託する際、最終処分まで適正に処理されたことを確認するための制度です。"},
+{ch:8,type:"tf",q:"下水道管路の清掃で発生した汚泥は、一般廃棄物として処理できる。",ans:false,exp:"下水道管路から発生する汚泥は産業廃棄物として適正に処理する必要があります。"},
+
+// --- 第9章 安全衛生管理 ---
+{ch:9,type:"mc",q:"酸素欠乏の定義として正しい酸素濃度は？",opts:["18%未満","19%未満","20%未満","21%未満"],ans:0,exp:"酸素欠乏とは空気中の酸素濃度が18%未満の状態をいいます。通常の大気中の酸素濃度は約21%です。"},
+{ch:9,type:"mc",q:"硫化水素の許容濃度として正しいものは？",opts:["1ppm","5ppm","10ppm","50ppm"],ans:2,exp:"硫化水素の許容濃度（日本産業衛生学会）は10ppmです。5ppmとする基準もあります。"},
+{ch:9,type:"mc",q:"マンホール内作業時に酸素濃度を何%以上に保つ必要があるか？",opts:["16%以上","18%以上","20%以上","21%以上"],ans:1,exp:"酸素欠乏症等防止規則により、作業場所の酸素濃度を18%以上に保つ必要があります。"},
+{ch:9,type:"tf",q:"危険予知活動（KYK）は、作業前に潜在する危険要因を予測し対策を立てる活動である。",ans:true,exp:"KYK（危険予知活動）は、作業開始前にチームで危険要因を洗い出し、対策を決定する安全活動です。"},
+{ch:9,type:"mc",q:"下水道管路作業で硫化水素濃度が何ppm以上の場合、直ちに退避する必要があるか？",opts:["5ppm","10ppm","25ppm","50ppm"],ans:1,exp:"硫化水素濃度が10ppm以上の場合は作業を行ってはならず、直ちに退避が必要です。"},
+{ch:9,type:"tf",q:"酸素欠乏危険作業の第2種は、酸素欠乏症と硫化水素中毒の両方のおそれがある場所での作業をいう。",ans:true,exp:"第2種酸素欠乏危険作業は酸素欠乏症と硫化水素中毒の両方の危険がある場所での作業です。下水道管路内作業は原則として第2種に該当します。"},
+{ch:9,type:"mc",q:"酸素欠乏危険作業主任者の選任が必要なのは？",opts:["作業員が3人以上の場合","酸素欠乏危険場所で作業する場合は常に","事業場の常時使用労働者が50人以上の場合","元請けの判断による"],ans:1,exp:"酸素欠乏危険場所で作業を行う場合は、作業員の人数に関わらず酸素欠乏危険作業主任者を選任する必要があります。"},
+{ch:9,type:"mc",q:"TBM（ツールボックスミーティング）の説明として正しいものは？",opts:["工具箱を整理する活動","作業現場で行う短時間の安全ミーティング","月1回の安全大会","事故報告書を作成する活動"],ans:1,exp:"TBM（ツールボックスミーティング）は、作業開始前に現場で短時間に行う安全打合せです。"},
+
+// --- 第10章 工事管理 ---
+{ch:10,type:"mc",q:"道路上で管路管理作業を行う際に設置が必要なものは？",opts:["監視カメラ","交通保安施設（バリケード・標識等）","消火器","防音壁"],ans:1,exp:"道路上での作業では、交通保安施設（バリケード、標識、保安灯等）を設置して安全を確保する必要があります。"},
+{ch:10,type:"tf",q:"道路上で作業を行う場合、道路管理者の道路占用許可と警察の道路使用許可の両方が必要になることがある。",ans:true,exp:"道路上で作業する場合、道路法に基づく道路占用許可（道路管理者）と道路交通法に基づく道路使用許可（警察）の両方が必要になる場合があります。"},
+
+// --- 第11章 関連法規 ---
+{ch:11,type:"mc",q:"下水道法における下水道管理者の維持修繕義務を定めた条文は？",opts:["第7条","第7条の2","第21条","第25条の30"],ans:2,exp:"下水道法第21条第1項で下水道管理者は政令で定める技術上の基準に従い維持修繕を行うことが規定されています。"},
+{ch:11,type:"tf",q:"下水道法は平成27年に改正され、維持修繕基準が創設された。",ans:true,exp:"平成27年5月20日の下水道法改正により、下水道施設の維持修繕に関する技術上の基準が新たに政令で規定されました。"},
+{ch:11,type:"mc",q:"廃棄物処理法で規定するマニフェスト（管理票）の保存期間は？",opts:["1年間","3年間","5年間","10年間"],ans:2,exp:"マニフェスト（産業廃棄物管理票）の保存期間は5年間です。"},
+
+// --- 第9章 安全衛生管理（追加問題） ---
+{ch:9,type:"mc",q:"空気中の酸素濃度が何%になると、めまい・吐気の症状が現れるか？",opts:["18%","16%","12%","8%"],ans:1,exp:"酸素濃度16%で頭痛・吐気、12%でめまい・筋力低下、8%で失神・7〜8分で死亡、6%で瞬時に昏倒・呼吸停止です。"},
+{ch:9,type:"mc",q:"硫化水素濃度700ppmで起こる症状は？",opts:["不快臭を感じる","気管支炎・肺炎","生命の危険","呼吸麻痺・昏睡・死亡"],ans:3,exp:"700ppmで呼吸麻痺・昏睡・呼吸停止・死亡に至ります。350ppmで生命の危険、20ppmで気管支炎、5ppmで不快臭です。"},
+{ch:9,type:"mc",q:"硫化水素の空気に対する比重（相対密度）はどれか？",opts:["0.6（空気より軽い）","1.0（空気と同じ）","1.2（空気より重い）","2.5（空気よりかなり重い）"],ans:2,exp:"硫化水素は比重1.2で空気より重く、マンホール底部などの低い場所に滞留しやすい性質があります。"},
+{ch:9,type:"mc",q:"管内作業時のガス測定は最低何箇所で行う必要があるか？",opts:["3箇所","5箇所","7箇所","10箇所"],ans:1,exp:"鉛直方向及び水平方向にそれぞれ3箇所以上、合計5箇所以上で測定する必要があります。"},
+{ch:9,type:"mc",q:"ガス測定記録の保存期間は？",opts:["1年間","3年間","5年間","10年間"],ans:1,exp:"ガス測定記録は3年間保存する義務があります。特別教育の記録も同じく3年間です。"},
+{ch:9,type:"mc",q:"換気後に管内に入る前に確認すべき酸素・硫化水素の基準は？",opts:["O2≧16%、H2S≦20ppm","O2≧18%、H2S≦10ppm","O2≧20%、H2S≦5ppm","O2≧21%、H2S≦1ppm"],ans:1,exp:"酸素濃度18%以上、硫化水素濃度10ppm以下であることを確認してから入坑します。"},
+{ch:9,type:"mc",q:"管内の換気で必要な風速は？",opts:["0.3m/s以上","0.5m/s以上","0.8m/s以上","1.5m/s以上"],ans:2,exp:"管内の風速は0.8m/s以上が必要です。換気時間の目安は管内容積を3〜5回置換する時間です。"},
+{ch:9,type:"mc",q:"保護帽（熱硬化性樹脂製FRP）の交換目安は何年か？",opts:["1年","3年","5年","10年"],ans:2,exp:"熱硬化性樹脂（FRP）製は5年、熱可塑性樹脂（ABS・PC・PE・PP）製は3年、着装体は約1年が交換目安です。"},
+{ch:9,type:"mc",q:"フルハーネス型墜落制止用器具が標準で求められる高さは？",opts:["2m以上","5m以上","6.75m超","10m以上"],ans:0,exp:"2m以上の高所で墜落制止用器具が必要です。フルハーネスが標準ですが、6.75m以下では胴ベルト型も使用可能です。"},
+{ch:9,type:"tf",q:"硫化水素は高濃度になると甘い臭いに変わり、嗅覚が麻痺するため、臭いだけでの判断は危険である。",ans:true,exp:"硫化水素は低濃度では腐卵臭ですが、高濃度では甘い臭いに変わり嗅覚が麻痺します。臭いだけでの安全判断は極めて危険です。"},
+{ch:9,type:"mc",q:"酸素欠乏危険作業の特別教育に必要な最低時間は？",opts:["3時間","4時間30分","5時間30分","8時間"],ans:2,exp:"酸素欠乏・硫化水素危険作業に関する特別教育は最低5時間30分の教育が必要です。"},
+{ch:9,type:"mc",q:"メタンガスの爆発範囲として正しいものは？",opts:["1.4〜7.6%","4.0〜44%","5.0〜15.0%","2.5〜100%"],ans:2,exp:"メタン(CH4)の爆発範囲は5.0〜15.0%です。硫化水素は4.0〜44%、ガソリンは1.4〜7.6%です。"},
+{ch:9,type:"tf",q:"下水道管路内作業は、原則として第2種酸素欠乏危険作業に該当する。",ans:true,exp:"下水道管路内は酸素欠乏と硫化水素中毒の両方の危険があるため、原則として第2種酸素欠乏危険作業に該当します。"},
+{ch:9,type:"mc",q:"空気呼吸器の定期点検頻度は？",opts:["毎月","3ヶ月ごと","6ヶ月ごと","1年ごと"],ans:1,exp:"空気呼吸器は3ヶ月ごとの定期点検が必要です。送気マスクは毎月点検が必要です。"},
+{ch:9,type:"mc",q:"安全衛生推進者の選任が必要な事業場の規模は？",opts:["5〜9人","10〜49人","50〜99人","100人以上"],ans:1,exp:"10〜49人の事業場では安全衛生推進者、50人以上では安全管理者・衛生管理者・産業医等の選任が必要です。"},
+
+// --- 第10章 工事管理（追加問題） ---
+{ch:10,type:"mc",q:"施工管理の3大管理要素として正しくないものは？",opts:["工程管理","品質管理","原価管理","人事管理"],ans:3,exp:"施工管理の3大管理は「工程管理」「品質管理」「原価管理」です。"},
+{ch:10,type:"mc",q:"更生工法で使用するスチレンの作業環境中の管理濃度は？",opts:["5ppm以下","10ppm以下","20ppm以下","50ppm以下"],ans:2,exp:"スチレンの管理濃度は20ppm以下です（労働安全衛生法）。道路端や接続ます部では0.4〜2.0ppm以下です。"},
+{ch:10,type:"mc",q:"道路占用許可の根拠法は？",opts:["道路交通法","道路法","建設業法","下水道法"],ans:1,exp:"道路占用許可は道路法第32条に基づき道路管理者から取得します。道路使用許可は道路交通法第77条に基づき警察から取得します。"},
+{ch:10,type:"mc",q:"ガソリンの消防法上の指定数量は？",opts:["100L","200L","400L","1,000L"],ans:1,exp:"ガソリンの指定数量は200Lです。灯油・軽油は1,000L、重油は2,000Lです。"},
+{ch:10,type:"mc",q:"夜間作業の照明灯の明るさ基準は？",opts:["50W以上","100W以上","200W以上","300W以上"],ans:1,exp:"夜間は白色照明灯100W以上を使用します。"},
+{ch:10,type:"tf",q:"道路占用許可と道路使用許可は同時に申請することができる。",ans:true,exp:"道路占用許可（道路管理者宛）と道路使用許可（警察宛）は同時に申請することができます。"},
+
+// --- 第11章 関連法規（追加問題） ---
+{ch:11,type:"mc",q:"「法律」「政令」「省令」のうち、国会が制定するものはどれか？",opts:["法律のみ","法律と政令","政令のみ","省令のみ"],ans:0,exp:"法律は国会が制定、政令（施行令）は内閣が制定、省令（施行規則）は各省大臣が制定します。"},
+{ch:11,type:"mc",q:"下水道法の改正で「流域治水」の考え方が導入されたのは何年か？",opts:["平成27年","令和元年","令和3年","令和5年"],ans:2,exp:"令和3年の下水道法改正で「流域治水」の考え方が導入されました。平成27年は維持修繕基準の創設です。"},
+{ch:11,type:"tf",q:"騒音規制法と振動規制法は、いずれも下水道管路管理に関連する法規である。",ans:true,exp:"管路管理作業では機械・車両を使用するため、騒音規制法と振動規制法の規制を遵守する必要があります。"},
+
+// --- 第12章 管路施設の設計及び構造 ---
+{ch:12,type:"mc",q:"管きょの流量計算に一般的に用いられる公式はどれか？",opts:["ベルヌーイの式","マニング式","ダルシー・ワイスバッハ式","ヘーゼン・ウィリアムス式"],ans:1,exp:"管きょの流量計算には一般的にマニング式（Manning's formula）が用いられます。V = (1/n) × R^(2/3) × I^(1/2)"},
+{ch:12,type:"mc",q:"コンクリート管の粗度係数nの値は？",opts:["0.010","0.013","0.015","0.020"],ans:1,exp:"コンクリート管のn=0.013、硬質塩化ビニル管・強化プラスチック複合管はn=0.010です。"},
+{ch:12,type:"mc",q:"汚水管きょの最小管径として規定されているのは？",opts:["φ100mm","φ150mm","φ200mm","φ250mm"],ans:2,exp:"汚水管きょの最小管径はφ200mmです。雨水管・合流管はφ250mm、圧力管はφ75mmです。"},
+{ch:12,type:"mc",q:"汚水管きょの設計流速の範囲として正しいものは？",opts:["0.3〜2.0m/s","0.6〜3.0m/s","0.8〜3.0m/s","1.0〜5.0m/s"],ans:1,exp:"汚水管の設計流速は0.6〜3.0m/sです。雨水管・合流管は0.8〜3.0m/sです。"},
+{ch:12,type:"mc",q:"管径600mm以下の場合、マンホールの最大設置間隔は？",opts:["50m","75m","100m","150m"],ans:1,exp:"管径600mm以下は75m、1,000mm以下は100m、1,500mm以下は150m、1,500mm超は200mが最大間隔です。"},
+{ch:12,type:"mc",q:"管きょの標準的な土被り（管頂から路面まで）は？",opts:["1m","2m","3m","5m"],ans:2,exp:"標準的な土被りは3mです。やむを得ない場合は最小1m（口径300mm以下の浅埋設では更に浅くできる場合あり）。"},
+{ch:12,type:"mc",q:"埋戻しの締固め度の基準は？",opts:["80%以上","85%以上","90%以上","95%以上"],ans:2,exp:"埋戻しの締固め度は90%以上が基準です。"},
+{ch:12,type:"mc",q:"段差接合で副管の設置が必要になる段差は？",opts:["0.3m以上","0.6m以上","1.0m以上","1.5m以上"],ans:1,exp:"段差が0.6m以上の場合は副管の設置が必要です。段差接合の最大段差は1箇所あたり1.5mです。"},
+{ch:12,type:"mc",q:"1号マンホールの内径は？",opts:["75cm","90cm","120cm","150cm"],ans:1,exp:"0号は75cm、1号は90cm、2号は120cm、3号は150cm、4号は180cm、5号は220cmです。"},
+{ch:12,type:"tf",q:"管きょの勾配は、流速が適正範囲（下流に向かって0.6〜3.0m/s程度）となるように設定する。",ans:true,exp:"管きょの設計では、汚水管の流速が0.6〜3.0m/s程度となるように勾配を設定します。流速が遅すぎると堆積、速すぎると摩耗の原因になります。"},
+{ch:12,type:"mc",q:"小型マンホールの最大深さは？",opts:["1.0m","1.5m","2.0m","3.0m"],ans:2,exp:"小型マンホールの最大深さは2.0m、最大角度は90度、最大間隔は50mです。"},
+{ch:12,type:"mc",q:"圧力管の流量計算に用いるヘーゼン・ウィリアムスのC値（曲管損失含む）は？",opts:["80","100","110","130"],ans:2,exp:"ヘーゼン・ウィリアムスのC値は曲管損失含みで110、直線のみで130です。"},
+
+// --- 第5章 調査（追加問題） ---
+{ch:5,type:"mc",q:"管きょの健全度判定で最も深刻なランク（緊急度が最も高い）はどれか？",opts:["ランクA","ランクB","ランクC","ランクI"],ans:0,exp:"ランクAが最も緊急度が高く、早急な対応が必要です。A→B→Cの順に緊急度が下がります。"},
+{ch:5,type:"mc",q:"テレビカメラ調査における展開図とは何か？",opts:["管路の平面図","管内面を平面に展開した画像","施工工程図","管の断面図"],ans:1,exp:"展開図は管内面の状態を平面に展開して表示した画像で、管きょ全周の異状を一覧できます。"},
+{ch:5,type:"tf",q:"水密性調査は、管きょの継手部や損傷部からの漏水・浸入水の有無を確認する調査である。",ans:true,exp:"水密性調査は管きょの水密性（漏水・浸入水の有無）を確認する調査で、空気圧試験や注水試験等があります。"},
+{ch:5,type:"mc",q:"管きょの健全度ランクは何段階で評価されるか？",opts:["3段階","4段階","5段階","6段階"],ans:2,exp:"健全度はV（初期状態・異状なし）〜I（使用不能）の5段階で評価します。Vが最良、Iが最悪です。"},
+{ch:5,type:"mc",q:"一般施設の管きょ調査の実施頻度の目安は？",opts:["10年に1回","15年に1回","20年に1回","30年に1回"],ans:3,exp:"一般施設は30年に1回、重要施設は15年に1回、最重要施設は10年に1回が調査頻度の目安です。"},
+{ch:5,type:"mc",q:"塩化ビニル管のたわみ率でランクa（深刻）と判定される基準は？",opts:["5%以上","10%以上","15%以上","20%以上"],ans:2,exp:"たわみ率ランクa（深刻）は15%以上、ランクb（中程度）は5〜15%です。5%未満は許容範囲内です。"},
+{ch:5,type:"mc",q:"鉄筋コンクリート管のクラック幅がランクa（深刻）と判定される基準は？",opts:["2mm以上","3mm以上","5mm以上","10mm以上"],ans:2,exp:"ランクa（深刻）は軸方向・円周方向とも5mm以上、ランクb（中程度）は2〜5mm、ランクc（軽微）は2mm未満です。"},
+{ch:5,type:"tf",q:"牽引式テレビカメラは、ウインチでカメラを引きながら管内を撮影する方式であり、自走式より小口径にも対応できる。",ans:true,exp:"牽引式は自走式より小口径の管きょにも適用可能です。自走式はφ200mm以上が目安ですが、牽引式はより小径にも対応します。"},
+{ch:5,type:"mc",q:"管きょの腐食度判定で、腐食グレードが最も深刻なのはどれか？",opts:["グレード1","グレード2","グレード3","グレード4"],ans:2,exp:"腐食グレード3が最も深刻で、管体に穴があくなど重大な腐食状態です。グレード1が軽微、2が中程度です。"},
+{ch:5,type:"mc",q:"管きょ調査の結果を記録・管理するデータベースの略称は？",opts:["GIS","GPS","CCTV","MICS"],ans:0,exp:"GIS（地理情報システム）を活用して管路の調査結果を地図上で一元管理します。MICSはマンホール情報管理システムです。"},
+{ch:5,type:"tf",q:"管きょ調査では、調査前に管内の清掃を行い、堆積物を除去してからテレビカメラ調査を実施することが標準である。",ans:true,exp:"テレビカメラ調査の前には管内清掃を実施し、堆積物を除去して管内面の状態を正確に把握できるようにします。"},
+
+// --- 第6章 清掃（追加問題） ---
+{ch:6,type:"mc",q:"管きょ清掃の必要性が高まる主な原因として正しくないものは？",opts:["油脂の付着","土砂の堆積","木根の侵入","管径の拡大"],ans:3,exp:"管径の拡大は清掃の原因になりません。油脂付着、土砂堆積、木根侵入、モルタル付着などが清掃が必要になる主な原因です。"},
+{ch:6,type:"tf",q:"バケット清掃は、ウインチでバケットを管内に引き込み、堆積物を掻き出す方法である。",ans:true,exp:"バケット清掃はマンホール間にワイヤーロープを通し、バケットをウインチで引くことで管内堆積物を掻き出す清掃方法です。"},
+{ch:6,type:"mc",q:"高圧洗浄車の標準的な吐出圧力は何MPa程度か？",opts:["5MPa","10MPa","20MPa","40MPa"],ans:2,exp:"高圧洗浄車の標準的な吐出圧力は約20MPa（15〜25MPa）程度です。管種・管径に応じて調整します。"},
+{ch:6,type:"mc",q:"管きょの清掃・調査の一般的な作業進行方向は？",opts:["上流側から下流側へ","下流側から上流側へ","どちらからでもよい","中間部から両方向へ"],ans:0,exp:"清掃・調査は一般的に上流側から下流側へ向かって実施します。テレビカメラ車両は上流マンホール側に配置します。"},
+{ch:6,type:"mc",q:"高圧洗浄ノズルの挿入深さの目安は管径の何倍か？",opts:["1倍","2倍","3倍","5倍"],ans:1,exp:"高圧洗浄ノズルの挿入深さは管径の2倍程度が目安です。挿入深さが浅すぎると洗浄効果が低く、深すぎると管の損傷リスクがあります。"},
+{ch:6,type:"mc",q:"特殊強力吸引車の対応可能なマンホール深さは？",opts:["8m以下","12m以下","22m以下","30m以下"],ans:2,exp:"特殊強力吸引車は風量40〜70m³/minでマンホール深さ22m以下に対応します。強力吸引車は20〜30m³/minで12m以下です。"},
+{ch:6,type:"tf",q:"油脂が多い箇所の清掃では、お湯（温水）を使用した高圧洗浄が効果的である。",ans:true,exp:"油脂の付着が著しい箇所では、温水を使用した高圧洗浄が油脂の溶解・除去に効果的です。"},
+{ch:6,type:"mc",q:"清掃により回収した堆積物の処理として正しいものは？",opts:["河川に放流する","そのまま埋め立てる","産業廃棄物として適正に処理する","一般ごみとして処理する"],ans:2,exp:"清掃により回収した汚泥等は産業廃棄物に該当し、廃棄物処理法に基づき適正に処理する必要があります。"},
+{ch:6,type:"mc",q:"ロッド（管通し）清掃が適している管きょの条件は？",opts:["大口径で堆積物が多い場合","小口径で軽度の閉塞の場合","腐食が進行した管きょ","圧力管きょ"],ans:1,exp:"ロッド清掃は比較的小口径の管きょで、軽度の閉塞や堆積物の除去に適しています。大口径や重度の堆積にはバケットや高圧洗浄が適切です。"},
+
+// --- 第7章 修繕・改築（追加問題） ---
+{ch:7,type:"mc",q:"更生工法の4分類として正しいものは？",opts:["反転・形成・製管・さや管","反転・形成・溶接・さや管","反転・製管・圧入・被覆","形成・製管・圧入・溶接"],ans:0,exp:"更生工法は「反転工法」「形成工法」「製管工法」「さや管工法」の4つに分類されます。"},
+{ch:7,type:"mc",q:"マンホール蓋の荷重規格で、車道用として使われるのは？",opts:["T-8","T-14","T-25","T-40"],ans:2,exp:"T-25が車道用（重荷重）、T-14が軽交通用です。Tは「トン」を意味し、耐荷重を表します。"},
+{ch:7,type:"tf",q:"更生工法の施工後は、取付け管口の穿孔（せん孔）作業が必要になることがある。",ans:true,exp:"更生工法で管内面を覆った後、取付け管との接続部を確保するため穿孔（せん孔）作業が必要です。"},
+{ch:7,type:"mc",q:"「自立管」と「複合管」の構造的な違いとして正しいものは？",opts:["自立管は大口径用、複合管は小口径用","自立管は更生管単独で外圧に抵抗、複合管は既設管と一体で機能","自立管は現場施工、複合管は工場製作","両者に構造的な違いはない"],ans:1,exp:"自立管は更生管単独で必要な強度を確保し外圧に抵抗します。複合管は既設管と更生管が一体構造として外力に抵抗します。"},
+{ch:7,type:"mc",q:"耐震設計で考慮するレベル2地震動（L2）はどのような地震か？",opts:["頻度の高い中規模地震","供用期間中に発生する確率が低い大規模地震","震度3程度の地震","海外で発生する地震"],ans:1,exp:"L2は供用期間中に発生する確率は低いが大きな強度の地震動です。L1は発生確率が高い中規模の地震動です。"},
+{ch:7,type:"mc",q:"反転工法の施工手順として正しいものは？",opts:["樹脂を含浸させた材料を管内で反転させて既設管に密着させ硬化する","新しい管を既設管内に引き込む","管内で帯状材料を螺旋状に巻いて管を構築する","既設管の外側に新しい管を敷設する"],ans:0,exp:"反転工法は樹脂を含浸させた筒状の材料を水圧や空気圧で管内に反転挿入し、既設管に密着させた後、熱や光で硬化させる工法です。"},
+{ch:7,type:"mc",q:"製管工法の特徴として正しいものは？",opts:["熱硬化性樹脂を使用する","管内で帯状の材料を螺旋状に巻き立てて管を構築する","完成後に既設管を撤去する","小口径管のみに適用される"],ans:1,exp:"製管工法は管内で帯状のPVC等の材料を螺旋状に巻き立てて更生管を構築する工法です。施工中も一部流水が可能な場合があります。"},
+{ch:7,type:"mc",q:"さや管工法の説明として正しいものは？",opts:["既設管内に新しい管を引き込み間隙にグラウトを充填する","既設管に樹脂を塗布する","管外面を被覆する","継手部のみを補修する"],ans:0,exp:"さや管工法は既設管内に新しい管（さや管）を引き込み、既設管との間隙にグラウト材を充填して一体化する工法です。"},
+{ch:7,type:"tf",q:"部分修繕工法は、管きょの損傷が局所的な場合に、その部分のみを補修する工法である。",ans:true,exp:"部分修繕工法は管きょの特定箇所（クラック、破損、継手ずれ等）のみを対象とした局所的な修繕工法です。"},
+{ch:7,type:"mc",q:"管きょの修繕と改築の違いとして正しいものは？",opts:["修繕は全線、改築は部分的","修繕は機能回復で耐用年数更新なし、改築は新たな耐用年数を確保","修繕は開削、改築は非開削","修繕は大口径、改築は小口径が対象"],ans:1,exp:"修繕は供用期間内の機能回復（耐用年数の更新なし）、改築は新たな耐用年数を確保する行為です。"},
+{ch:7,type:"mc",q:"管更生工法の選定で考慮すべき事項として最も重要でないものは？",opts:["既設管の材質・口径","既設管の損傷状況","施工時の交通規制条件","管路管理者の好み"],ans:3,exp:"工法選定では既設管の材質・口径・損傷状況、施工条件（交通規制、地下水位等）、経済性等を総合的に判断します。管理者の好みは選定基準ではありません。"},
+
+// --- 第8章 廃棄物処理（追加問題） ---
+{ch:8,type:"mc",q:"産業廃棄物管理票（マニフェスト）は何枚複写式か？",opts:["3枚","5枚","7枚","10枚"],ans:2,exp:"マニフェストは7枚複写式です（A票・B1票・B2票・C1票・C2票・D票・E票）。排出事業者・収集運搬業者・処分業者でそれぞれ管理します。"},
+{ch:8,type:"mc",q:"マニフェストの写し（B2票・D票・E票）の返送期限で、E票（最終処分）は何日以内か？",opts:["60日","90日","180日","365日"],ans:2,exp:"B2票（運搬終了）・D票（処分終了）は90日以内、E票（最終処分終了）は180日以内に返送される必要があります。"},
+{ch:8,type:"mc",q:"マニフェストの保存期間は何年間か？",opts:["1年間","3年間","5年間","10年間"],ans:2,exp:"マニフェスト（A票及び返送されたB2票・D票・E票）は5年間の保存義務があります。"},
+{ch:8,type:"mc",q:"産業廃棄物の最終処分場の種類として正しくないものは？",opts:["安定型処分場","管理型処分場","遮断型処分場","開放型処分場"],ans:3,exp:"最終処分場は「安定型」「管理型」「遮断型」の3種類です。安定型は安定5品目、管理型は有害でない廃棄物、遮断型は有害な廃棄物を処分します。"},
+{ch:8,type:"tf",q:"建設リサイクル法により、一定規模以上の解体工事では分別解体・再資源化が義務付けられている。",ans:true,exp:"建設リサイクル法により、対象建設工事（一定規模以上）では、コンクリート、アスファルト、木材等の分別解体と再資源化が義務付けられています。"},
+{ch:8,type:"mc",q:"下水道管路の清掃・調査で発生する汚泥の廃棄物区分は？",opts:["一般廃棄物","産業廃棄物","特別管理一般廃棄物","放射性廃棄物"],ans:1,exp:"下水道管路から発生する汚泥は「産業廃棄物」に分類され、廃棄物処理法に基づく適正処理が必要です。"},
+
+// --- マニュアル準拠 精密問題（第5章） ---
+{ch:5,type:"mc",q:"スパン評価でランクAとなる条件は？",opts:["aランク管が10%以上","aランク管が20%以上またはa+bが40%以上","cランク管が60%以上","aランク管が50%以上"],ans:1,exp:"スパンランクA：aランク20%以上、またはa+bランク合計40%以上。ランクB：a<20%かつa+b<40%だがa+b+c≧60%。ランクC：aもbもなくc<60%。"},
+{ch:5,type:"mc",q:"管きょの緊急度判定で「緊急度I（最も深刻）」となる条件は？",opts:["診断項目にランクAが1つある場合","診断項目にランクAが2つ以上ある場合","診断項目にランクBが2つ以上ある場合","診断項目にランクCのみの場合"],ans:1,exp:"緊急度I：3つの診断項目中2つ以上がランクA。緊急度II：ランクAが1つ、またはランクBが2つ以上。緊急度III：ランクBが1つ、またはランクCのみ。"},
+{ch:5,type:"mc",q:"健全度V（最良）の管きょの状態として正しいものは？",opts:["使用不能な状態","機能低下が著しい状態","劣化の兆候はあるが機能に問題なし","初期状態で異状なし"],ans:3,exp:"健全度V：初期状態で7つの診断項目すべてに異状なし。IV：ランクCが1つ以上。III：ランクBが1つ以上。II：ランクAが1つ以上。I：使用不能。"},
+{ch:5,type:"mc",q:"展開図化式テレビカメラの特徴として正しいものは？",opts:["管口からのみ撮影する","パノラマ画像として展開図を自動生成する","大口径管専用である","水中でのみ使用できる"],ans:1,exp:"展開図化式テレビカメラは管内面の画像をパノラマ写真として展開図に自動変換でき、個別に側視する必要がなく調査時間を短縮できます。"},
+{ch:5,type:"tf",q:"浮流式テレビカメラは水面に浮かせて使用するため、流水中の管きょでも調査可能である。",ans:true,exp:"浮流式テレビカメラは管径250〜3,000mmに対応し、水面に浮かせて使用するため高水位の管きょでも調査が可能です。"},
+{ch:5,type:"mc",q:"鉄筋コンクリート管の継手ずれでランクa（深刻）となる基準は？",opts:["30mm以上","50mm以上","70mm以上","100mm以上"],ans:2,exp:"RC管の継手ずれ：ランクa＝70mm以上（または離脱）、ランクb＝70mm未満。陶管はa＝50mm以上。"},
+
+// --- マニュアル準拠 精密問題（第6章） ---
+{ch:6,type:"mc",q:"超高圧洗浄車の最大吐出圧力はどれか？",opts:["20MPa","35MPa","50〜78MPa","100MPa"],ans:2,exp:"超高圧洗浄車は50〜78MPaの超高圧で、木根やモルタル等の頑固な付着物を除去します。標準の高圧洗浄車は20MPaです。"},
+{ch:6,type:"mc",q:"高圧洗浄車の標準的なホース長さは？",opts:["30m","80m","150m","300m"],ans:1,exp:"標準ホース長は80m（最大150m）です。ホースが長くなると圧力損失が増加するため、適切な長さを選定します。"},
+{ch:6,type:"mc",q:"管きょ清掃の実施基準で、堆積物の深さが管断面の何%以上で清掃が必要か？",opts:["1〜3%","5〜20%","30〜40%","50%"],ans:1,exp:"堆積物深さが管断面の5〜20%以上で清掃が必要とされます。管径や堆積物の種類によって判断基準が異なります。"},
+{ch:6,type:"tf",q:"高圧洗浄の後方噴射ノズルは、噴射の反力で管内を自走しながら洗浄する方式である。",ans:true,exp:"後方噴射ノズルは後方に水を噴射し、その反力で管内を自走前進します。標準的な管内清掃に広く使用されます。"},
+
+// --- マニュアル準拠 精密問題（第7章） ---
+{ch:7,type:"mc",q:"形成工法のうち、紫外線で硬化させる方式の利点は？",opts:["施工費が最も安い","硬化時間が短くスチレン臭が少ない","大口径にのみ対応できる","水中施工が可能"],ans:1,exp:"UV硬化（紫外線照射）方式は硬化時間が短く、熱硬化方式と比べてスチレン等の臭気が少ないのが利点です。"},
+{ch:7,type:"mc",q:"更生工法で「複合管」の設計に用いる構造理論は？",opts:["柔構造管理論","剛性管理論（限界状態設計法）","弾性理論","塑性理論"],ans:1,exp:"複合管は剛性管理論（限界状態設計法）で設計します。自立管はたわみ性管理論（JSWAS K-1, K-2）で設計します。"},
+{ch:7,type:"mc",q:"マンホールの浮上防止対策として正しくないものは？",opts:["地盤改良工法","過剰間隙水圧消散工法","アンカー工法","管きょ延長工法"],ans:3,exp:"浮上防止対策は地盤改良（セメント・石灰等）、過剰間隙水圧消散（グラベルドレーン等）、アンカー、重量増加（底版増厚等）の4工法です。"},
+{ch:7,type:"mc",q:"L1地震動で管きょに求められる性能は？",opts:["流下機能の確保のみ","設計流下能力の確保","倒壊しないこと","損傷しないこと"],ans:1,exp:"L1地震動では設計流下能力を確保する性能が必要です。L2地震動では流下機能を確保（変形は許容するが破壊・土砂流入は防止）します。"},
+{ch:7,type:"tf",q:"製管工法は、施工中も管内の流水を確保できる場合がある。",ans:true,exp:"製管工法は管内で帯状材料を螺旋状に巻き立てるため、施工中も一部流水が可能な場合があり、水替えの負担を軽減できます。"},
+
+// --- マニュアル準拠 精密問題（第8章） ---
+{ch:8,type:"mc",q:"マニフェストの返送期限内に返送がない場合、排出事業者は何日以内に知事に報告する必要があるか？",opts:["7日以内","14日以内","30日以内","60日以内"],ans:2,exp:"返送期限を過ぎても返送がない場合、排出事業者は運搬・処分状況を調査し、期限超過後30日以内に都道府県知事に報告しなければなりません。"},
+{ch:8,type:"mc",q:"マニフェストの処理状況の年次報告はいつまでに提出するか？",opts:["毎年3月31日まで","毎年6月30日まで","毎年9月30日まで","毎年12月31日まで"],ans:1,exp:"マニフェスト交付状況の年次報告は毎年6月30日までに都道府県知事に提出します。"},
+{ch:8,type:"mc",q:"建設工事の廃棄物処理で、排出事業者に該当するのは誰か？",opts:["発注者（施主）","元請業者","下請業者","設計者"],ans:1,exp:"建設工事で発生する廃棄物の排出事業者は「元請業者」です。発注者でも下請業者でもなく、元請業者が処理責任を負います。"},
+{ch:8,type:"tf",q:"汚泥を埋立処分する場合、含水率85%以下に脱水するか、強熱減量15%以下に焼却する必要がある。",ans:true,exp:"汚泥の埋立処分には含水率85%以下への脱水、または強熱減量（灼熱減量）15%以下への焼却処理が必要です。"},
+{ch:8,type:"mc",q:"安定型最終処分場で処分できる品目数は？",opts:["3品目","5品目","7品目","10品目"],ans:1,exp:"安定型処分場は安定5品目（廃プラ、ゴムくず、金属くず、ガラス・コンクリート・陶磁器くず、がれき類）のみ処分可能です。"},
+];
+
+// ===== APP STATE =====
+let state = {
+  screen: 'home',
+  mode: 'all',
+  selectedChapters: [],
+  numQuestions: 10,
+  currentQuiz: [],
+  currentIndex: 0,
+  answers: [],
+  timer: null,
+  seconds: 0,
+  history: JSON.parse(localStorage.getItem('quizHistory') || '[]'),
+  wrongIds: JSON.parse(localStorage.getItem('wrongIds') || '[]')
+};
+
+const chapterNames = {
+  1: '第1章 総論',
+  2: '第2章 計画的維持管理',
+  3: '第3章 巡視',
+  4: '第4章 点検',
+  5: '第5章 調査',
+  6: '第6章 清掃',
+  7: '第7章 修繕・改築',
+  8: '第8章 廃棄物処理',
+  9: '第9章 安全衛生',
+  10: '第10章 工事管理',
+  11: '第11章 関連法規',
+  12: '第12章 設計・構造'
+};
+
+// ===== INIT =====
+function init() {
+  updateStats();
+  document.getElementById('totalQuestions').textContent = questions.length;
+}
+
+function updateStats() {
+  const h = state.history;
+  document.getElementById('totalAttempts').textContent = h.length;
+  if (h.length > 0) {
+    const avg = Math.round(h.reduce((s, r) => s + r.pct, 0) / h.length);
+    document.getElementById('avgScore').textContent = avg + '%';
+  }
+}
+
+// ===== NAVIGATION =====
+function showScreen(id) {
+  ['homeScreen','chapterScreen','quizScreen','resultScreen'].forEach(s => {
+    document.getElementById(s).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+  document.getElementById('backBtn').classList.toggle('hidden', id === 'homeScreen');
+  state.screen = id;
+}
+
+function goBack() {
+  if (state.screen === 'quizScreen') {
+    if (confirm('クイズを中断してホームに戻りますか？')) {
+      clearInterval(state.timer);
+      showScreen('homeScreen');
+    }
+  } else {
+    showScreen('homeScreen');
+  }
+}
+
+// ===== MODE SELECTION =====
+function selectMode(mode) {
+  state.mode = mode;
+  if (mode === 'all') {
+    state.selectedChapters = Object.keys(chapterNames).map(Number);
+    showChapterScreen();
+  } else if (mode === 'chapter') {
+    state.selectedChapters = [];
+    showChapterScreen();
+  } else if (mode === 'weak') {
+    if (state.wrongIds.length === 0) {
+      alert('間違えた問題がまだありません。まずは問題を解いてみましょう！');
+      return;
+    }
+    state.selectedChapters = [...new Set(state.wrongIds.map(i => questions[i].ch))];
+    state.numQuestions = Math.min(state.wrongIds.length, 20);
+    showChapterScreen();
+  }
+}
+
+function showChapterScreen() {
+  const grid = document.getElementById('chapterGrid');
+  grid.innerHTML = '';
+  Object.entries(chapterNames).forEach(([ch, name]) => {
+    const count = questions.filter(q => q.ch === Number(ch)).length;
+    const btn = document.createElement('button');
+    btn.className = 'chapter-btn' + (state.selectedChapters.includes(Number(ch)) ? ' selected' : '');
+    btn.textContent = name + ' (' + count + ')';
+    btn.onclick = () => toggleChapter(Number(ch), btn);
+    grid.appendChild(btn);
+  });
+  document.getElementById('numDisplay').textContent = state.numQuestions;
+  showScreen('chapterScreen');
+}
+
+function toggleChapter(ch, btn) {
+  if (state.mode === 'all' || state.mode === 'weak') return;
+  const idx = state.selectedChapters.indexOf(ch);
+  if (idx >= 0) { state.selectedChapters.splice(idx, 1); btn.classList.remove('selected'); }
+  else { state.selectedChapters.push(ch); btn.classList.add('selected'); }
+}
+
+function changeNum(delta) {
+  state.numQuestions = Math.max(5, Math.min(50, state.numQuestions + delta));
+  document.getElementById('numDisplay').textContent = state.numQuestions;
+}
+
+// ===== START QUIZ =====
+function startQuiz() {
+  if (state.selectedChapters.length === 0) { alert('章を1つ以上選択してください。'); return; }
+
+  let pool;
+  if (state.mode === 'weak') {
+    pool = state.wrongIds.map(i => ({...questions[i], origIdx: i}));
+  } else {
+    pool = questions.filter(q => state.selectedChapters.includes(q.ch)).map((q, i) => ({...q, origIdx: questions.indexOf(q)}));
+  }
+
+  // Shuffle
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+
+  state.currentQuiz = pool.slice(0, state.numQuestions);
+  state.currentIndex = 0;
+  state.answers = [];
+  state.seconds = 0;
+
+  showScreen('quizScreen');
+  startTimer();
+  renderQuestion();
+}
+
+function startTimer() {
+  clearInterval(state.timer);
+  state.timer = setInterval(() => {
+    state.seconds++;
+    const m = String(Math.floor(state.seconds / 60)).padStart(2, '0');
+    const s = String(state.seconds % 60).padStart(2, '0');
+    document.getElementById('timerText').textContent = m + ':' + s;
+  }, 1000);
+}
+
+// ===== RENDER QUESTION =====
+function renderQuestion() {
+  const q = state.currentQuiz[state.currentIndex];
+  const total = state.currentQuiz.length;
+  const idx = state.currentIndex;
+
+  document.getElementById('progressText').textContent = (idx + 1) + ' / ' + total;
+  document.getElementById('progressFill').style.width = ((idx + 1) / total * 100) + '%';
+
+  const card = document.getElementById('questionCard');
+  let html = '';
+
+  if (q.type === 'mc') {
+    html += '<span class="q-type mc">4択問題</span>';
+  } else {
+    html += '<span class="q-type tf">○×問題</span>';
+  }
+  html += '<span class="q-chapter">' + chapterNames[q.ch] + '</span>';
+  html += '<p class="q-text">' + q.q + '</p>';
+
+  if (q.type === 'mc') {
+    const labels = ['A', 'B', 'C', 'D'];
+    q.opts.forEach((opt, i) => {
+      html += '<button class="option-btn" onclick="selectAnswer(' + i + ')" id="opt' + i + '">';
+      html += '<span class="opt-label">' + labels[i] + '</span>' + opt;
+      html += '</button>';
+    });
+  } else {
+    html += '<button class="option-btn" onclick="selectAnswer(true)" id="optTrue">';
+    html += '<span class="opt-label">○</span>正しい</button>';
+    html += '<button class="option-btn" onclick="selectAnswer(false)" id="optFalse">';
+    html += '<span class="opt-label">×</span>誤り</button>';
+  }
+
+  card.innerHTML = html;
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('explanation').innerHTML = '';
+  document.getElementById('nextBtn').classList.remove('show');
+}
+
+// ===== ANSWER SELECTION =====
+function selectAnswer(answer) {
+  const q = state.currentQuiz[state.currentIndex];
+  const isCorrect = (q.type === 'mc') ? (answer === q.ans) : (answer === q.ans);
+
+  state.answers.push({ answer, correct: isCorrect, origIdx: q.origIdx });
+
+  // Update wrong IDs
+  if (!isCorrect) {
+    if (!state.wrongIds.includes(q.origIdx)) state.wrongIds.push(q.origIdx);
+  } else {
+    state.wrongIds = state.wrongIds.filter(id => id !== q.origIdx);
+  }
+  localStorage.setItem('wrongIds', JSON.stringify(state.wrongIds));
+
+  // Disable buttons
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
+
+  if (q.type === 'mc') {
+    const labels = ['A', 'B', 'C', 'D'];
+    for (let i = 0; i < q.opts.length; i++) {
+      const el = document.getElementById('opt' + i);
+      if (i === q.ans) el.classList.add('correct');
+      else if (i === answer && !isCorrect) el.classList.add('wrong');
+      if (i === q.ans) el.classList.add('show-correct');
+    }
+  } else {
+    const correctId = q.ans ? 'optTrue' : 'optFalse';
+    const wrongId = q.ans ? 'optFalse' : 'optTrue';
+    document.getElementById(correctId).classList.add('correct');
+    if (!isCorrect) {
+      document.getElementById(answer ? 'optTrue' : 'optFalse').classList.add('wrong');
+    }
+  }
+
+  // Show explanation
+  const expDiv = document.getElementById('explanation');
+  expDiv.innerHTML = '<div class="exp-title">' + (isCorrect ? '✓ 正解！' : '✗ 不正解') + '</div>' + q.exp;
+  expDiv.classList.add('show');
+
+  // Show next button
+  const nextBtn = document.getElementById('nextBtn');
+  if (state.currentIndex < state.currentQuiz.length - 1) {
+    nextBtn.textContent = '次の問題 →';
+  } else {
+    nextBtn.textContent = '結果を見る 📊';
+  }
+  nextBtn.classList.add('show');
+}
+
+function nextQuestion() {
+  state.currentIndex++;
+  if (state.currentIndex >= state.currentQuiz.length) {
+    showResult();
+  } else {
+    renderQuestion();
+    window.scrollTo(0, 0);
+  }
+}
+
+// ===== RESULT =====
+function showResult() {
+  clearInterval(state.timer);
+
+  const correct = state.answers.filter(a => a.correct).length;
+  const total = state.answers.length;
+  const pct = Math.round(correct / total * 100);
+
+  // Save history
+  state.history.push({ date: new Date().toISOString(), correct, total, pct, seconds: state.seconds });
+  localStorage.setItem('quizHistory', JSON.stringify(state.history));
+
+  // Chapter breakdown
+  const chBreakdown = {};
+  state.currentQuiz.forEach((q, i) => {
+    if (!chBreakdown[q.ch]) chBreakdown[q.ch] = { correct: 0, total: 0 };
+    chBreakdown[q.ch].total++;
+    if (state.answers[i].correct) chBreakdown[q.ch].correct++;
+  });
+
+  const m = String(Math.floor(state.seconds / 60)).padStart(2, '0');
+  const s = String(state.seconds % 60).padStart(2, '0');
+
+  let msg, color;
+  if (pct >= 90) { msg = '素晴らしい！'; color = '#16a34a'; }
+  else if (pct >= 70) { msg = 'よくできました！'; color = '#2563eb'; }
+  else if (pct >= 50) { msg = 'もう少し頑張りましょう'; color = '#d97706'; }
+  else { msg = '復習が必要です'; color = '#dc2626'; }
+
+  let html = '<div class="result-card">';
+  html += '<div class="result-score" style="color:' + color + '">' + pct + '%</div>';
+  html += '<div class="result-total">' + correct + ' / ' + total + ' 問正解</div>';
+  html += '<div class="result-bar"><div class="result-bar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>';
+  html += '<div class="result-msg" style="color:' + color + '">' + msg + '</div>';
+  html += '<div class="result-detail">所要時間: ' + m + ':' + s + '</div>';
+
+  html += '<div class="result-chapters">';
+  Object.entries(chBreakdown).sort((a,b) => a[0]-b[0]).forEach(([ch, data]) => {
+    const chPct = Math.round(data.correct / data.total * 100);
+    html += '<div class="result-ch"><span>' + chapterNames[ch] + '</span><span>' + data.correct + '/' + data.total + ' (' + chPct + '%)</span></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="btn-group">';
+  html += '<button class="btn-secondary" onclick="showReview()">解答を見る</button>';
+  html += '<button class="btn-primary" onclick="showScreen(\'homeScreen\');updateStats();">ホームへ</button>';
+  html += '</div></div>';
+
+  document.getElementById('resultScreen').innerHTML = html;
+  showScreen('resultScreen');
+  updateStats();
+}
+
+function showReview() {
+  let html = '<div style="margin-bottom:12px"><button class="btn-secondary" style="width:100%;border-radius:12px;padding:12px;" onclick="showResult()">← 結果に戻る</button></div>';
+
+  state.currentQuiz.forEach((q, i) => {
+    const a = state.answers[i];
+    const cls = a.correct ? 'correct-review' : 'incorrect';
+    html += '<div class="review-item ' + cls + '">';
+    html += '<div class="review-q">Q' + (i+1) + '. ' + q.q + '</div>';
+
+    if (q.type === 'mc') {
+      const labels = ['A','B','C','D'];
+      if (!a.correct) {
+        html += '<div class="review-a">あなたの回答: <span class="your-ans">' + labels[a.answer] + '. ' + q.opts[a.answer] + '</span></div>';
+      }
+      html += '<div class="review-a">正解: <span class="correct-ans">' + labels[q.ans] + '. ' + q.opts[q.ans] + '</span></div>';
+    } else {
+      if (!a.correct) {
+        html += '<div class="review-a">あなたの回答: <span class="your-ans">' + (a.answer ? '○' : '×') + '</span></div>';
+      }
+      html += '<div class="review-a">正解: <span class="correct-ans">' + (q.ans ? '○' : '×') + '</span></div>';
+    }
+    html += '<div style="font-size:12px;color:#64748b;margin-top:4px;">' + q.exp + '</div>';
+    html += '</div>';
+  });
+
+  document.getElementById('resultScreen').innerHTML = html;
+}
+
+function resetData() {
+  if (confirm('学習履歴と苦手問題のデータをすべて削除しますか？\n（この操作は取り消せません）')) {
+    localStorage.removeItem('quizHistory');
+    localStorage.removeItem('wrongIds');
+    state.history = [];
+    state.wrongIds = [];
+    updateStats();
+    document.getElementById('avgScore').textContent = '-';
+    alert('学習履歴をリセットしました。');
+  }
+}
+
+// Init
+init();
+</script>
+</body>
+</html>
