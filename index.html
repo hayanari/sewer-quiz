@@ -127,6 +127,34 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-ser
 /* Reset button */
 .reset-btn { display: block; width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #fecaca; border-radius: 12px; background: #fff5f5; color: #dc2626; font-size: 13px; cursor: pointer; text-align: center; }
 .reset-btn:hover { background: #fef2f2; }
+
+/* Name input screen */
+.name-screen { display: flex; align-items: center; justify-content: center; min-height: 70vh; }
+.name-card { background: white; border-radius: 16px; padding: 32px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); text-align: center; width: 100%; }
+.name-card h2 { font-size: 20px; color: #1e3a5f; margin-bottom: 8px; }
+.name-card p { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+.name-input { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; text-align: center; outline: none; transition: border-color 0.2s; }
+.name-input:focus { border-color: #2563eb; }
+.name-submit { display: block; width: 100%; padding: 16px; margin-top: 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; font-size: 16px; font-weight: 700; cursor: pointer; }
+.name-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.user-badge { display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 12px; margin-top: 4px; }
+
+/* Admin dashboard */
+.admin-btn { display: block; width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; color: #475569; font-size: 13px; cursor: pointer; text-align: center; }
+.admin-btn:hover { background: #f1f5f9; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+.admin-table th { background: #1e3a5f; color: white; padding: 10px 6px; text-align: left; font-weight: 600; position: sticky; top: 0; }
+.admin-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; }
+.admin-table tr:nth-child(even) { background: #f8fafc; }
+.admin-table tr:hover { background: #eff6ff; }
+.admin-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.admin-stat { background: #f0f4f8; border-radius: 12px; padding: 14px; text-align: center; }
+.admin-stat .num { font-size: 22px; font-weight: 700; color: #2563eb; }
+.admin-stat .label { font-size: 11px; color: #64748b; margin-top: 2px; }
+.admin-filter { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.admin-filter select, .admin-filter input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; }
+.loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -136,6 +164,17 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-ser
     <button class="back-btn hidden" id="backBtn" onclick="goBack()">← 戻る</button>
     <h1>下水道管路管理マニュアル 2023</h1>
     <p>試験問題トレーニング</p>
+    <div class="user-badge hidden" id="userBadge"></div>
+  </div>
+</div>
+
+<!-- NAME INPUT SCREEN -->
+<div class="container name-screen" id="nameScreen">
+  <div class="name-card">
+    <h2>ようこそ</h2>
+    <p>学習記録に使用する名前を入力してください</p>
+    <input type="text" class="name-input" id="nameInput" placeholder="例：山田太郎" maxlength="20" onkeyup="if(event.key==='Enter')submitName()">
+    <button class="name-submit" id="nameSubmit" onclick="submitName()" disabled>はじめる</button>
   </div>
 </div>
 
@@ -179,12 +218,22 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-ser
   </div>
   <div class="home-card">
     <h2>データ管理</h2>
-    <button class="reset-btn" onclick="resetData()">学習履歴をリセット</button>
+    <button class="admin-btn" onclick="showAdmin()">管理者ダッシュボード（全員の記録）</button>
+    <button class="admin-btn" onclick="changeName()" style="margin-top:6px;">名前を変更</button>
+    <button class="reset-btn" onclick="resetData()">自分の学習履歴をリセット</button>
   </div>
   <div class="footer">
     <p>下水道管路管理マニュアル 2023 準拠</p>
     <p>全150問（4択: 117問 / ○×: 33問）・全12章対応</p>
-    <p style="margin-top:4px;">ver 1.0 - このファイル1つで動作します</p>
+    <p style="margin-top:4px;">ver 2.0 - 学習記録一括管理対応</p>
+  </div>
+</div>
+
+<!-- ADMIN SCREEN -->
+<div class="container hidden" id="adminScreen">
+  <div class="home-card">
+    <h2>管理者ダッシュボード</h2>
+    <div id="adminContent"><p style="text-align:center;padding:20px;"><span class="loading-spinner"></span><br><br>データを読み込み中...</p></div>
   </div>
 </div>
 
@@ -420,6 +469,10 @@ const questions = [
 {ch:8,type:"mc",q:"安定型最終処分場で処分できる品目数は？",opts:["3品目","5品目","7品目","10品目"],ans:1,exp:"安定型処分場は安定5品目（廃プラ、ゴムくず、金属くず、ガラス・コンクリート・陶磁器くず、がれき類）のみ処分可能です。"},
 ];
 
+// ===== CONFIG =====
+// Google Apps Script のデプロイURL（設置後にここを書き換える）
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw8mgDuPDiudApEEReKdqqZ47LGsubV8_MReDuJijaxDafPCdF8z0T4KkHfHjBomDjaTw/exec';
+
 // ===== APP STATE =====
 let state = {
   screen: 'home',
@@ -432,7 +485,8 @@ let state = {
   timer: null,
   seconds: 0,
   history: JSON.parse(localStorage.getItem('quizHistory') || '[]'),
-  wrongIds: JSON.parse(localStorage.getItem('wrongIds') || '[]')
+  wrongIds: JSON.parse(localStorage.getItem('wrongIds') || '[]'),
+  userName: localStorage.getItem('quizUserName') || ''
 };
 
 const chapterNames = {
@@ -452,8 +506,42 @@ const chapterNames = {
 
 // ===== INIT =====
 function init() {
+  // 名前入力のリアルタイムチェック
+  document.getElementById('nameInput').addEventListener('input', function() {
+    document.getElementById('nameSubmit').disabled = this.value.trim().length === 0;
+  });
+
+  if (state.userName) {
+    document.getElementById('nameScreen').classList.add('hidden');
+    document.getElementById('homeScreen').classList.remove('hidden');
+    document.getElementById('userBadge').textContent = state.userName;
+    document.getElementById('userBadge').classList.remove('hidden');
+  } else {
+    document.getElementById('homeScreen').classList.add('hidden');
+    document.getElementById('nameScreen').classList.remove('hidden');
+  }
   updateStats();
   document.getElementById('totalQuestions').textContent = questions.length;
+}
+
+function submitName() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return;
+  state.userName = name;
+  localStorage.setItem('quizUserName', name);
+  document.getElementById('nameScreen').classList.add('hidden');
+  document.getElementById('homeScreen').classList.remove('hidden');
+  document.getElementById('userBadge').textContent = name;
+  document.getElementById('userBadge').classList.remove('hidden');
+}
+
+function changeName() {
+  const newName = prompt('新しい名前を入力してください:', state.userName);
+  if (newName && newName.trim()) {
+    state.userName = newName.trim();
+    localStorage.setItem('quizUserName', state.userName);
+    document.getElementById('userBadge').textContent = state.userName;
+  }
 }
 
 function updateStats() {
@@ -467,7 +555,7 @@ function updateStats() {
 
 // ===== NAVIGATION =====
 function showScreen(id) {
-  ['homeScreen','chapterScreen','quizScreen','resultScreen'].forEach(s => {
+  ['homeScreen','chapterScreen','quizScreen','resultScreen','adminScreen'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
@@ -683,6 +771,9 @@ function showResult() {
   state.history.push({ date: new Date().toISOString(), correct, total, pct, seconds: state.seconds });
   localStorage.setItem('quizHistory', JSON.stringify(state.history));
 
+  // Send to Google Sheets
+  sendToGAS(correct, total, pct);
+
   // Chapter breakdown
   const chBreakdown = {};
   state.currentQuiz.forEach((q, i) => {
@@ -750,6 +841,100 @@ function showReview() {
   });
 
   document.getElementById('resultScreen').innerHTML = html;
+}
+
+// ===== GAS INTEGRATION =====
+function sendToGAS(correct, total, pct) {
+  if (!GAS_URL) return;
+  // Chapter breakdown string
+  const chBreak = {};
+  state.currentQuiz.forEach((q, i) => {
+    if (!chBreak[q.ch]) chBreak[q.ch] = {c:0,t:0};
+    chBreak[q.ch].t++;
+    if (state.answers[i].correct) chBreak[q.ch].c++;
+  });
+  const chStr = Object.entries(chBreak).sort((a,b)=>a[0]-b[0])
+    .map(([ch,d]) => chapterNames[ch]+':'+d.c+'/'+d.t).join(', ');
+
+  const modeNames = {all:'全章ランダム', chapter:'章別出題', weak:'苦手克服'};
+  const payload = {
+    name: state.userName,
+    correct: correct,
+    total: total,
+    pct: pct,
+    seconds: state.seconds,
+    mode: modeNames[state.mode] || state.mode,
+    chapters: chStr
+  };
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).catch(function(){});
+}
+
+// ===== ADMIN DASHBOARD =====
+function showAdmin() {
+  showScreen('adminScreen');
+  const content = document.getElementById('adminContent');
+
+  if (!GAS_URL) {
+    content.innerHTML = '<p style="text-align:center;color:#dc2626;padding:16px;">Google Apps Script のURLが未設定です。<br><br>管理者に連絡してください。</p>';
+    return;
+  }
+
+  content.innerHTML = '<p style="text-align:center;padding:20px;"><span class="loading-spinner"></span><br><br>データを読み込み中...</p>';
+
+  fetch(GAS_URL)
+    .then(function(r){ return r.json(); })
+    .then(function(data){ renderAdmin(data); })
+    .catch(function(){ content.innerHTML = '<p style="text-align:center;color:#dc2626;padding:16px;">データの取得に失敗しました。</p>'; });
+}
+
+function renderAdmin(data) {
+  const content = document.getElementById('adminContent');
+  if (!data || data.length === 0) {
+    content.innerHTML = '<p style="text-align:center;color:#64748b;padding:16px;">まだ記録がありません。</p>';
+    return;
+  }
+
+  // Summary stats
+  const names = [...new Set(data.map(d => d.name))];
+  const avgPct = Math.round(data.reduce((s,d) => s + Number(d.pct), 0) / data.length);
+  const totalAttempts = data.length;
+
+  let html = '<div class="admin-summary">';
+  html += '<div class="admin-stat"><div class="num">' + names.length + '</div><div class="label">参加者数</div></div>';
+  html += '<div class="admin-stat"><div class="num">' + totalAttempts + '</div><div class="label">総挑戦回数</div></div>';
+  html += '<div class="admin-stat"><div class="num">' + avgPct + '%</div><div class="label">全体平均正答率</div></div>';
+  html += '</div>';
+
+  // Per-person summary
+  html += '<h3 style="font-size:14px;margin:16px 0 8px;color:#1e3a5f;">個人別サマリー</h3>';
+  html += '<div style="overflow-x:auto;"><table class="admin-table"><tr><th>名前</th><th>回数</th><th>平均</th><th>最高</th><th>最新</th></tr>';
+  names.forEach(function(name) {
+    const records = data.filter(d => d.name === name);
+    const avg = Math.round(records.reduce((s,d) => s + Number(d.pct), 0) / records.length);
+    const best = Math.max(...records.map(d => Number(d.pct)));
+    const latest = records[records.length - 1];
+    html += '<tr><td><strong>' + name + '</strong></td><td>' + records.length + '回</td><td>' + avg + '%</td><td>' + best + '%</td><td>' + latest.pct + '% (' + latest.date + ')</td></tr>';
+  });
+  html += '</table></div>';
+
+  // Full record table
+  html += '<h3 style="font-size:14px;margin:16px 0 8px;color:#1e3a5f;">全記録一覧（新しい順）</h3>';
+  html += '<div style="overflow-x:auto;max-height:400px;overflow-y:auto;"><table class="admin-table"><tr><th>日時</th><th>名前</th><th>正答率</th><th>正解</th><th>時間</th><th>モード</th></tr>';
+  data.slice().reverse().forEach(function(d) {
+    const m = String(Math.floor(d.seconds / 60)).padStart(2,'0');
+    const s = String(d.seconds % 60).padStart(2,'0');
+    const color = d.pct >= 80 ? '#16a34a' : d.pct >= 60 ? '#2563eb' : d.pct >= 40 ? '#d97706' : '#dc2626';
+    html += '<tr><td style="white-space:nowrap;">' + d.date + '</td><td>' + d.name + '</td><td style="color:'+color+';font-weight:700;">' + d.pct + '%</td><td>' + d.correct + '/' + d.total + '</td><td>' + m + ':' + s + '</td><td style="font-size:11px;">' + (d.mode||'') + '</td></tr>';
+  });
+  html += '</table></div>';
+
+  content.innerHTML = html;
 }
 
 function resetData() {
